@@ -2,6 +2,13 @@
 
 ## Notice
 The project is in development.
+todo list:
+- parse user input BNF grammer
+- check grammar ambiguity
+- generate SLR table for given grammar
+- generate LR(1) table for given grammer
+- generate LALR table for given grammer
+- a simple implement of yacc
 
 ## Usage
 ### Install
