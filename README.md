@@ -3,7 +3,7 @@
 ## Notice
 The project is in development. 
 
-##TODO list
+## TODO list
 - parse user input BNF grammer
 - check grammar ambiguity
 - generate SLR table for given grammar
