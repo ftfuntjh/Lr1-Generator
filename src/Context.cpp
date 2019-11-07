@@ -180,3 +180,11 @@ bool Context::firstExist(const Item &item) {
 bool Context::firstExist(const std::string &name) {
     return firstAt(name) != firstSet.end();
 }
+
+auto Context::followAt(const Item &item) -> decltype(followSet.begin()) {
+    return followSet.find(item.getName());
+}
+
+auto Context::followAt(const string &name) -> decltype(followSet.begin()) {
+    return followSet.find(name);
+}

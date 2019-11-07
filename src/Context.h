@@ -5,8 +5,11 @@
 #include "Production.h"
 
 class Context {
-
-
+private:
+    Production start;
+    std::vector<Production> ruleList;
+    std::map<std::string, std::set<Item>> firstSet;
+    std::map<std::string, std::set<Item>> followSet;
 public:
     explicit Context(std::vector<Production> grammar, Production startProduction);
 
@@ -22,16 +25,16 @@ public:
 
     void printGrammar();
 
-private:
-    Production start;
-    std::vector<Production> ruleList;
-    std::map<std::string, std::set<Item>> firstSet;
-    std::map<std::string, std::set<Item>> followSet;
-
-private:
     auto firstAt(const Item &item) -> decltype(firstSet.begin());
 
     auto firstAt(const std::string &name) -> decltype(firstSet.begin());
+
+    auto followAt(const Item &item) -> decltype(followSet.begin());
+
+    auto followAt(const std::string &name) -> decltype(followSet.begin());
+
+private:
+
 
     bool firstExist(const Item &item);
 
