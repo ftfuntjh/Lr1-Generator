@@ -8,10 +8,9 @@ class Context {
 
 
 public:
-    explicit Context(std::vector<Production> grammar);
+    explicit Context(std::vector<Production> grammar, Production startProduction);
 
     void first();
-
 
     void follow();
 
@@ -19,7 +18,12 @@ public:
 
     void printFirst();
 
+    void printFollow();
+
+    void printGrammar();
+
 private:
+    Production start;
     std::vector<Production> ruleList;
     std::map<std::string, std::set<Item>> firstSet;
     std::map<std::string, std::set<Item>> followSet;

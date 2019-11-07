@@ -18,6 +18,8 @@ public:
         return name.getName();
     }
 
+    Item getItem();
+
     size_t size();
 
     Item first();

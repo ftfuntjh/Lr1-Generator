@@ -24,3 +24,7 @@ size_t Production::size() {
 Item Production::last() {
     return handleList.back();
 }
+
+Item Production::getItem() {
+    return name;
+}
