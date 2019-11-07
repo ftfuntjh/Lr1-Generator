@@ -33,8 +33,8 @@ T_ -> ^
 F -> (E)
 F -> i
 ```
-**the '^' means 'ε'**
-**the '$' means 'eof' **
+**the '^' means 'ε'**  
+**the '$' means 'eof'**
 ### the result is
 ```
 --- the first set is ---
