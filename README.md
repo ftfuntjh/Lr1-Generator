@@ -1,7 +1,15 @@
 # Calculate First/Follow Set of given grammar
 
 ## Notice
-The project is in development.
+The project is in development. 
+
+## TODO list
+- parse user input BNF grammer
+- check grammar ambiguity
+- generate SLR table for given grammar
+- generate LR(1) table for given grammer
+- generate LALR table for given grammer
+- a simple implement of yacc
 
 ## Usage
 ### Install
@@ -26,8 +34,8 @@ T_ -> ^
 F -> (E)
 F -> i
 ```
-**the '^' means 'ε'**
-
+**the '^' means 'ε'**  
+**the '$' means 'eof'**
 ### the result is
 ```
 --- the first set is ---
