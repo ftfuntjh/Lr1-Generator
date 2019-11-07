@@ -1,8 +1,9 @@
 # Calculate First/Follow Set of given grammar
 
 ## Notice
-The project is in development.  
-todo list:
+The project is in development. 
+
+##TODO list
 - parse user input BNF grammer
 - check grammar ambiguity
 - generate SLR table for given grammar
