@@ -22,6 +22,8 @@ public:
 
     Item first();
 
+    Item last();
+
     bool isNullable() const {
         return std::find(handleList.begin(), handleList.end(), Item{"^", ItemType::Terminal}) != handleList.end();
     }

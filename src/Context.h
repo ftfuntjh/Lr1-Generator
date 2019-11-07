@@ -5,10 +5,13 @@
 #include "Production.h"
 
 class Context {
+
+
 public:
-    explicit Context(const std::vector<Production> &grammar);
+    explicit Context(std::vector<Production> grammar);
 
     void first();
+
 
     void follow();
 
@@ -20,6 +23,15 @@ private:
     std::vector<Production> ruleList;
     std::map<std::string, std::set<Item>> firstSet;
     std::map<std::string, std::set<Item>> followSet;
+
+private:
+    auto firstAt(const Item &item) -> decltype(firstSet.begin());
+
+    auto firstAt(const std::string &name) -> decltype(firstSet.begin());
+
+    bool firstExist(const Item &item);
+
+    bool firstExist(const std::string &name);
 };
 
 #endif

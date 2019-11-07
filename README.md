@@ -32,7 +32,7 @@ T’→ε，
 F→(E)|i
 ```
 **the '^' means 'ε'**
-the result is
+  the result is
 ```
 E -> {'(' ,'i'}
 E_ -> {'+' ,'^'}
