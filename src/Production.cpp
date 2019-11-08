@@ -9,7 +9,7 @@ const Item &Production::operator[](size_t index) {
     return handleList.at(index);
 }
 
-bool Production::operator==(const Production &other) {
+bool Production::operator==(const Production &other) const {
     return this->name == other.name;
 }
 

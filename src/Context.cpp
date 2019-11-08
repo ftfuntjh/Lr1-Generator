@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 
+
 static const Item EMPTY{"^", ItemType::Terminal};
 static const Item Eof{"$", ItemType::Terminal};
 using std::vector;
@@ -12,6 +13,10 @@ using std::pair;
 using std::cout;
 using std::endl;
 using std::move;
+using std::copy_if;
+using std::back_inserter;
+using std::begin;
+using std::end;
 
 Context::Context(vector<Production> grammar, Production startProduction) : ruleList(move(grammar)), firstSet{},
                                                                            followSet{},
@@ -119,8 +124,9 @@ void Context::follow() {
     } while (hasChanged);
 }
 
-bool Context::isNullable(const Production &rule) {
-    return false;
+bool Context::isNullable(const Item &item) {
+    auto iterator = firstSet.find(item.getName());
+    return iterator == end(firstSet);
 }
 
 void Context::printFirst() {
@@ -188,3 +194,63 @@ auto Context::followAt(const Item &item) -> decltype(followSet.begin()) {
 auto Context::followAt(const string &name) -> decltype(followSet.begin()) {
     return followSet.find(name);
 }
+
+void Context::generalLr1() {
+    bool hasChanged;
+    auto startHandler = Handler{start, 0};
+    auto startState = closureSet(startHandler);
+    do {
+        hasChanged = false;
+        for (auto &p : startState) {
+
+        }
+    } while (hasChanged);
+}
+
+set<Handler> Context::closureSet(Handler &currencyHandler) {
+    bool hasChanged;
+    set<Handler> result{currencyHandler};
+    do {
+        hasChanged = false;
+        auto item = currencyHandler.current();
+        auto bet = currencyHandler.bet();
+        if (item.isNoTerminal()) {
+            auto pRules = rules(item);
+            for (auto &p : pRules) {
+                Handler handler{p, 0};
+                if (!bet) {
+                    auto firstP = firstAt(handler.getItem());
+                    if (firstP == firstSet.end()) {
+                        throw std::runtime_error("not found first set.");
+                    }
+                    auto &firstPM = (*firstP).second;
+                    handler.addLookForward(firstPM.begin(), firstPM.end());
+                } else {
+                    auto &val = bet.value();
+                    if (isNullable(val)) {
+                        set<Item> lookItems{currencyHandler.getLookForward().begin(),
+                                            currencyHandler.getLookForward().end()};
+                        lookItems.insert(begin(firstAt(val)->second), end(firstAt(val)->second));
+                        lookItems.erase(EMPTY);
+                        handler.addLookForward(lookItems.begin(), lookItems.end());
+                    }
+                }
+                firstAt(bet.value());
+                if (result.find(handler) == result.end()) {
+                    hasChanged = true;
+                    result.emplace(handler);
+                }
+            }
+        }
+    } while (hasChanged);
+    return result;
+}
+
+std::vector<Production> Context::rules(const Item &item) {
+    vector<Production> result{};
+    copy_if(ruleList.begin(), ruleList.end(), back_inserter(result), [&item](Production other) {
+        return other.getName() == item.getName() && other.getItem().isTerminal() == item.isTerminal();
+    });
+    return result;
+}
+

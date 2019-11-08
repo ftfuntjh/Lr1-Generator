@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_CPP_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 project(lr1)
 
 include(FetchContent)
@@ -15,7 +15,7 @@ if (NOT googletest_POPULATED)
     add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 endif ()
 
-add_library(lr1 ./src/Production.cpp ./src/Item.cpp ./src/Context.cpp)
+add_library(lr1 ./src/Production.cpp ./src/Item.cpp ./src/Context.cpp ./src/Handler.cpp)
 
 add_subdirectory(test)
 add_subdirectory(example)

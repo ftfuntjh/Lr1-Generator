@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include "Production.h"
+#include "Handler.h"
 
 class Context {
 private:
@@ -17,13 +18,15 @@ public:
 
     void follow();
 
-    bool isNullable(const Production &rule);
+    bool isNullable(const Item &item);
 
     void printFirst();
 
     void printFollow();
 
     void printGrammar();
+
+    void generalLr1();
 
     auto firstAt(const Item &item) -> decltype(firstSet.begin());
 
@@ -35,6 +38,9 @@ public:
 
 private:
 
+    std::vector<Production> rules(const Item &item);
+
+    std::set<Handler> closureSet(Handler &currencyHandler);
 
     bool firstExist(const Item &item);
 

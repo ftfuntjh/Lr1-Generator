@@ -15,7 +15,7 @@ The project is in development.
 ### Install
 ```
 git clone https://github.com/ftfuntjh/First-Follow.git
-cd first-Follow
+cd current-Follow
 mkdir build && cd build
 cmake .. && cmake -- build .
 ./build/lr1
@@ -38,7 +38,7 @@ F -> i
 **the '$' means 'eof'**
 ### the result is
 ```
---- the first set is ---
+--- the current set is ---
 E -> {'(' ,'i'}
 E_ -> {'+' ,'^'}
 F -> {'(' ,'i'}

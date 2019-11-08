@@ -6,11 +6,15 @@
 #include <vector>
 #include <algorithm>
 
+class Handler;
+
 class Production {
 public:
+    friend class Handler;
+
     Production(const Item &name, const std::vector<Item> &handleList);
 
-    bool operator==(const Production &other);
+    bool operator==(const Production &other) const;
 
     const Item &operator[](size_t index);
 
