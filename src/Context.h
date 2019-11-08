@@ -27,7 +27,7 @@ public:
 
     void printGrammar();
 
-    void generalLr1();
+    std::vector<HandlerSet> generalLr1();
 
     auto firstAt(const Item &item) -> decltype(firstSet.begin());
 

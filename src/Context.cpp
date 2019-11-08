@@ -200,21 +200,28 @@ auto Context::followAt(const string &name) -> decltype(followSet.begin()) {
     return followSet.find(name);
 }
 
-void Context::generalLr1() {
+vector<HandlerSet> Context::generalLr1() {
     bool hasChanged;
-    set<HandlerSet> stateSet{};
+    vector<HandlerSet> stateSet{};
     auto startHandler = Handler{start, 0, set<Item>{Eof}};
-    stateSet.emplace(HandlerSet{Eof, closureSet(startHandler)});
+    stateSet.emplace_back(HandlerSet{Eof, closureSet(startHandler)});
+    auto has = [](HandlerSet &a1, HandlerSet &a2) {
+        return a1.shiftItem() == a2.shiftItem() &&
+               std::equal(a1.ruleList().begin(), a1.ruleList().end(), a2.ruleList().begin());
+    };
     do {
         hasChanged = false;
         for (auto p : stateSet) {
             auto nextStat = Goto(p);
-            if (!nextStat.empty()) {
-                hasChanged = true;
-                stateSet.insert(nextStat.begin(), nextStat.end());
+            for (const auto &stat : nextStat) {
+                if (std::find(stateSet.begin(), stateSet.end(), stat) == stateSet.end()) {
+                    hasChanged = true;
+                    stateSet.emplace_back(stat);
+                }
             }
         }
     } while (hasChanged);
+    return stateSet;
 }
 
 set<HandlerSet> Context::Goto(HandlerSet currState) {

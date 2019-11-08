@@ -20,6 +20,8 @@ public:
 
     bool operator<(const HandlerSet &other) const;
 
+    bool operator==(const HandlerSet &other) const;
+
 private:
     Item shift;
     std::set<Handler> handlerList;

@@ -9,6 +9,7 @@
 using std::set;
 using std::move;
 using std::equal;
+using std::lexicographical_compare;
 
 HandlerSet::HandlerSet(Item item) : shift{move(item)}, handlerList{} {
 
@@ -27,9 +28,12 @@ set<Handler> &HandlerSet::ruleList() {
 }
 
 bool HandlerSet::operator<(const HandlerSet &other) const {
-    if (shift < other.shift || other.shift < shift) {
-        return shift < other.shift;
-    } else {
-        return equal(handlerList.begin(), handlerList.end(), other.handlerList.begin());
-    }
+    auto comp = [](const Handler &a1, const Handler &a2) { return a1 < a2; };
+    return lexicographical_compare(handlerList.begin(), handlerList.end(), other.handlerList.begin(),
+                                   other.handlerList.end(), comp);
+
+}
+
+bool HandlerSet::operator==(const HandlerSet &other) const {
+    return shift == other.shift && equal(handlerList.begin(), handlerList.end(), other.handlerList.begin());
 }

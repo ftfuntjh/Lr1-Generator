@@ -32,6 +32,19 @@ public:
     Context context{productions, productions[0]};
 };
 
+TEST_F(Goto, ShouldGenerateLr1Table) {
+    context.first();
+    context.follow();
+    auto result = context.generalLr1();
+    for (auto n : result) {
+        cout << endl;
+        cout << "--- start new state " << n.shiftItem().getName() << " ---" << endl;
+        for (auto h : n.ruleList()) {
+            h.printHandler();
+        }
+        cout << "--- end new state --- " << endl;
+    }
+}
 
 TEST_F(Goto, ShouldReturnNextHandlerSet) {
     context.first();

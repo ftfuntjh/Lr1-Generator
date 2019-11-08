@@ -97,8 +97,9 @@ bool Handler::operator<(const Handler &handler) const {
 
 bool Handler::operator==(const Handler &handler) const {
     auto match = equal(production.handleList.begin(), production.handleList.begin(),
-                       handler.production.handleList.end());
-    return match && production == handler.production && handler.position == position;
+                       handler.production.handleList.begin());
+    auto lookMatch = equal(lookForward.begin(), lookForward.end(), handler.lookForward.begin());
+    return match && lookMatch && production == handler.production && handler.position == position;
 }
 
 void Handler::printHandler() {
