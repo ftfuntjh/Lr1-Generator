@@ -19,7 +19,7 @@ private:
 public:
     explicit Handler(Production p, size_t position = 0);
 
-    Handler(Production p, size_t pos, std::set<Item> const &lookTable);
+    Handler(Production p, size_t pos, std::set<Item> lookTable);
 
     std::vector<Item> alpha();
 

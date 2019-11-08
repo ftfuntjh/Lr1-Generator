@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "Production.h"
 #include "Handler.h"
+#include "HandlerSet.h"
 
 class Context {
 private:
@@ -40,7 +41,7 @@ public:
 
     std::set<Handler> closureItemSet(std::set<Handler> &handlerSet);
 
-    std::set<std::set<Handler>> Goto(std::set<Handler> currState);
+    std::set<HandlerSet> Goto(HandlerSet currencyHandler);
 
 private:
 

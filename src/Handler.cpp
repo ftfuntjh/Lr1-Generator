@@ -17,16 +17,17 @@ using std::endl;
 using std::distance;
 using std::equal;
 using std::lexicographical_compare;
+using std::runtime_error;
 
 Handler::Handler(Production p, size_t pos) : production{move(p)}, position{pos},
                                              lookForward{} {
 
 }
 
-Handler::Handler(Production p, size_t pos, std::set<Item> const &lookTable) :
+Handler::Handler(Production p, size_t pos, std::set<Item> lookTable) :
         production{move(p)},
         position{pos},
-        lookForward(lookTable) {
+        lookForward(std::move(lookTable)) {
 
 }
 
@@ -42,21 +43,21 @@ auto Handler::B() -> decltype(production.handleList.begin()) {
 }
 
 optional<Item> Handler::bet() {
-    if (isEnd()) {
+    if (position == production.size() - 1) {
         return optional<Item>{};
     }
     return optional<Item>{production.handleList[position + 1]};
 }
 
 bool Handler::isEnd() {
-    return position == production.size() - 1;
+    return position == production.size();
 }
 
 Handler Handler::nextHandler() {
     if (isEnd()) {
         throw std::runtime_error("at production end without nextHandler");
     }
-    return Handler{production, position++};
+    return Handler{production, position + 1, lookForward};
 }
 
 set<Item> &Handler::getLookForward() {
@@ -64,6 +65,9 @@ set<Item> &Handler::getLookForward() {
 }
 
 Item Handler::current() {
+    if (position > production.size() - 1) {
+        throw runtime_error("invalid index");
+    }
     return production[position];
 }
 

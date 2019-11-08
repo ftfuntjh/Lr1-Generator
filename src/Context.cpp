@@ -202,9 +202,9 @@ auto Context::followAt(const string &name) -> decltype(followSet.begin()) {
 
 void Context::generalLr1() {
     bool hasChanged;
-    set<set<Handler>> stateSet{};
+    set<HandlerSet> stateSet{};
     auto startHandler = Handler{start, 0, set<Item>{Eof}};
-    stateSet.emplace(closureSet(startHandler));
+    stateSet.emplace(HandlerSet{Eof, closureSet(startHandler)});
     do {
         hasChanged = false;
         for (auto p : stateSet) {
@@ -217,8 +217,43 @@ void Context::generalLr1() {
     } while (hasChanged);
 }
 
-set<set<Handler>> Context::Goto(set<Handler> currState) {
-    return set<set<Handler>>{};
+set<HandlerSet> Context::Goto(HandlerSet currState) {
+    set<HandlerSet> result{};
+    set<Item> nTList{};
+    set<Item> tList{};
+    for (auto h : currState.ruleList()) {
+        if (h.isEnd()) {
+            continue;
+        }
+        auto item = h.current();
+        if (item.isNoTerminal()) {
+            nTList.emplace(item);
+        } else if (item.isTerminal() && item.getName() != "^") {
+            tList.emplace(item);
+        }
+    }
+
+    for (auto &nT : nTList) {
+        set<Handler> next{};
+        for (auto h:currState.ruleList()) {
+            if (h.current() == nT && !h.isEnd()) {
+                next.emplace(move(h.nextHandler()));
+            }
+        }
+        next = closureItemSet(next);
+        result.emplace(HandlerSet{nT, next});
+    }
+    for (auto &t : tList) {
+        set<Handler> next{};
+        for (auto h:currState.ruleList()) {
+            if (h.current() == t && !h.isEnd()) {
+                next.emplace(move(h.nextHandler()));
+            }
+        }
+        next = closureItemSet(next);
+        result.emplace(t, next);
+    }
+    return result;
 }
 
 set<Handler> Context::closureItemSet(set<Handler> &handlerSet) {
@@ -239,6 +274,9 @@ set<Handler> Context::closureSet(Handler &startHandler) {
     do {
         hasChanged = false;
         for (auto currentHandler:result) {
+            if (currentHandler.isEnd()) {
+                continue;
+            }
             auto item = currentHandler.current();
             auto bet = currentHandler.bet();
             if (item.isNoTerminal()) {
