@@ -202,14 +202,32 @@ auto Context::followAt(const string &name) -> decltype(followSet.begin()) {
 
 void Context::generalLr1() {
     bool hasChanged;
-    auto startHandler = Handler{start, 0};
-    auto startState = closureSet(startHandler);
+    set<set<Handler>> stateSet{};
+    auto startHandler = Handler{start, 0, set<Item>{Eof}};
+    stateSet.emplace(closureSet(startHandler));
     do {
         hasChanged = false;
-        for (auto &p : startState) {
-
+        for (auto p : stateSet) {
+            auto nextStat = Goto(p);
+            if (!nextStat.empty()) {
+                hasChanged = true;
+                stateSet.insert(nextStat.begin(), nextStat.end());
+            }
         }
     } while (hasChanged);
+}
+
+set<set<Handler>> Context::Goto(set<Handler> currState) {
+    return set<set<Handler>>{};
+}
+
+set<Handler> Context::closureItemSet(set<Handler> &handlerSet) {
+    set<Handler> result{};
+    for (auto handler : handlerSet) {
+        auto closure = closureSet(handler);
+        result.insert(closure.begin(), closure.end());
+    }
+    return result;
 }
 
 set<Handler> Context::closureSet(Handler &startHandler) {

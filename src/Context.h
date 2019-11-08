@@ -38,6 +38,10 @@ public:
 
     std::set<Handler> closureSet(Handler &startHandler);
 
+    std::set<Handler> closureItemSet(std::set<Handler> &handlerSet);
+
+    std::set<std::set<Handler>> Goto(std::set<Handler> currState);
+
 private:
 
     std::vector<Production> rules(const Item &item);
