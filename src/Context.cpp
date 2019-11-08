@@ -207,37 +207,39 @@ void Context::generalLr1() {
     } while (hasChanged);
 }
 
-set<Handler> Context::closureSet(Handler &currencyHandler) {
+set<Handler> Context::closureSet(Handler &startHandler) {
     bool hasChanged;
-    set<Handler> result{currencyHandler};
+    set<Handler> result{startHandler};
     do {
         hasChanged = false;
-        auto item = currencyHandler.current();
-        auto bet = currencyHandler.bet();
-        if (item.isNoTerminal()) {
-            auto pRules = rules(item);
-            for (auto &p : pRules) {
-                Handler handler{p, 0};
-                if (!bet) {
-                    auto firstP = firstAt(handler.getItem());
-                    if (firstP == firstSet.end()) {
-                        throw std::runtime_error("not found first set.");
+        for (auto currentHandler:result) {
+            auto item = currentHandler.current();
+            auto bet = currentHandler.bet();
+            if (item.isNoTerminal()) {
+                auto pRules = rules(item);
+                for (auto &p : pRules) {
+                    Handler handler{p, 0};
+                    if (!bet) {
+                        auto firstP = firstAt(handler.getItem());
+                        if (firstP == firstSet.end()) {
+                            throw std::runtime_error("not found first set.");
+                        }
+                        auto &firstPM = firstP->second;
+                        handler.addLookForward(firstPM.begin(), firstPM.end());
+                    } else {
+                        auto &val = bet.value();
+                        if (isNullable(val)) {
+                            set<Item> lookItems{currentHandler.getLookForward().begin(),
+                                                currentHandler.getLookForward().end()};
+                            lookItems.insert(begin(firstAt(val)->second), end(firstAt(val)->second));
+                            lookItems.erase(EMPTY);
+                            handler.addLookForward(lookItems.begin(), lookItems.end());
+                        }
                     }
-                    auto &firstPM = (*firstP).second;
-                    handler.addLookForward(firstPM.begin(), firstPM.end());
-                } else {
-                    auto &val = bet.value();
-                    if (isNullable(val)) {
-                        set<Item> lookItems{currencyHandler.getLookForward().begin(),
-                                            currencyHandler.getLookForward().end()};
-                        lookItems.insert(begin(firstAt(val)->second), end(firstAt(val)->second));
-                        lookItems.erase(EMPTY);
-                        handler.addLookForward(lookItems.begin(), lookItems.end());
+                    if (result.find(handler) == result.end()) {
+                        hasChanged = true;
+                        result.emplace(handler);
                     }
-                }
-                if (result.find(handler) == result.end()) {
-                    hasChanged = true;
-                    result.emplace(handler);
                 }
             }
         }

@@ -14,15 +14,20 @@ using std::exception;
 using std::set;
 using std::cout;
 using std::endl;
+using std::distance;
+using std::equal;
+using std::lexicographical_compare;
 
 Handler::Handler(Production p, size_t pos) : production{move(p)}, position{pos},
                                              lookForward{Item{"$", ItemType::Terminal}} {
 
 }
 
-Handler::Handler(Production p, size_t pos, std::set<Item> const &lookTable) : production{move(p)}, position{pos},
-                                                                              lookForward{lookTable.begin(),
-                                                                                          lookTable.end()} {
+Handler::Handler(Production p, size_t pos, std::set<Item> const &lookTable) :
+        production{move(p)},
+        position{pos},
+        lookForward{lookTable.begin(),
+                    lookTable.end()} {
 
 }
 
@@ -72,17 +77,30 @@ Item Handler::getItem() {
 }
 
 bool Handler::operator<(const Handler &handler) const {
-    return production.getName() < handler.production.getName();
+    if (production.getName() != handler.production.getName()) {
+        return production.getName() < handler.production.getName();
+    } else {
+        auto comparator = [](const Item &a1, const Item &a2) { return a1 < a2; };
+        return lexicographical_compare(production.handleList.begin(), production.handleList.end(),
+                                       handler.production.handleList.begin(), handler.production.handleList.end(),
+                                       comparator);
+    }
 }
 
 bool Handler::operator==(const Handler &handler) const {
-    return production == handler.production && position == handler.position;
+    auto match = equal(production.handleList.begin(), production.handleList.begin(),
+                       handler.production.handleList.end());
+    return match && production == handler.production && handler.position == position;
 }
 
 void Handler::printHandler() {
     cout << production.getName() << " -> ";
-    for (auto &i : production.handleList) {
-        cout << i.getName();
+    for (int i = 0; i < production.handleList.size(); i++) {
+        auto &t = production.handleList[i];
+        if (position == i) {
+            cout << "·";
+        }
+        cout << t.getName();
     }
     cout << ",< ";
     for (auto &i : lookForward) {

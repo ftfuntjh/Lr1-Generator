@@ -36,7 +36,7 @@ public:
 
     auto followAt(const std::string &name) -> decltype(followSet.begin());
 
-    std::set<Handler> closureSet(Handler &currencyHandler);
+    std::set<Handler> closureSet(Handler &startHandler);
 
 private:
 

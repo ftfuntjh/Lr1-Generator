@@ -37,7 +37,7 @@ TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
     cout << "--- end ---" << endl;
     context.printFollow();
     auto result = context.closureSet(startHandler);
-    cout << endl;
+    cout << "--- handler ---" << endl;
     for (auto h : result) {
         h.printHandler();
     }
@@ -51,7 +51,7 @@ TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
             Handler{productions[2], 0, cc_Set},
             Handler{productions[3], 0, cc_Set},
     };
-    ASSERT_EQ(result, expected);
+    EXPECT_THAT(result, expected);
 }
 
 int main(int argc, char *argv[]) {
