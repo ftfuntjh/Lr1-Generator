@@ -235,7 +235,6 @@ set<Handler> Context::closureSet(Handler &currencyHandler) {
                         handler.addLookForward(lookItems.begin(), lookItems.end());
                     }
                 }
-                firstAt(bet.value());
                 if (result.find(handler) == result.end()) {
                     hasChanged = true;
                     result.emplace(handler);

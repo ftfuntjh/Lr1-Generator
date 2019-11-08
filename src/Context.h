@@ -36,11 +36,12 @@ public:
 
     auto followAt(const std::string &name) -> decltype(followSet.begin());
 
+    std::set<Handler> closureSet(Handler &currencyHandler);
+
 private:
 
     std::vector<Production> rules(const Item &item);
 
-    std::set<Handler> closureSet(Handler &currencyHandler);
 
     bool firstExist(const Item &item);
 
