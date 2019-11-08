@@ -29,7 +29,11 @@ public:
 };
 
 TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
-    Handler startHandler{productions.front(), 0};
+    set<Item> s_Set{Item{"$", ItemType::Terminal}};
+    set<Item> cc_Set{c, d};
+    set<Item> c_Set{c};
+    set<Item> d_Set{d};
+    Handler startHandler(productions.front(), 0, s_Set);
     context.first();
     context.follow();
     cout << "--- first --- " << endl;
@@ -41,13 +45,10 @@ TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
     for (auto h : result) {
         h.printHandler();
     }
-    set<Item> s_Set{Item{"$", ItemType::Terminal}};
-    set<Item> cc_Set{c, d};
-    set<Item> c_Set{c};
-    set<Item> d_Set{d};
+
     set<Handler> expected{
-            Handler{productions[0], 0},
-            Handler{productions[1], 0},
+            Handler{productions[0], 0, s_Set},
+            Handler{productions[1], 0, s_Set},
             Handler{productions[2], 0, cc_Set},
             Handler{productions[3], 0, cc_Set},
     };

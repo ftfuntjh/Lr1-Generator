@@ -39,14 +39,9 @@ public:
 
     void addLookForward(std::set<Item>::const_iterator begin, std::set<Item>::const_iterator end);
 
-    template<typename ...Args>
-    void addLookForward(Args &&...args) {
-        lookForward.emplace(std::forward<Args &&>(args)...);
-    }
-
     Item current();
 
-    std::set<Item> getLookForward();
+    std::set<Item> &getLookForward();
 
     Item getItem();
 };

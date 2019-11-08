@@ -19,15 +19,14 @@ using std::equal;
 using std::lexicographical_compare;
 
 Handler::Handler(Production p, size_t pos) : production{move(p)}, position{pos},
-                                             lookForward{Item{"$", ItemType::Terminal}} {
+                                             lookForward{} {
 
 }
 
 Handler::Handler(Production p, size_t pos, std::set<Item> const &lookTable) :
         production{move(p)},
         position{pos},
-        lookForward{lookTable.begin(),
-                    lookTable.end()} {
+        lookForward(lookTable) {
 
 }
 
@@ -46,7 +45,7 @@ optional<Item> Handler::bet() {
     if (isEnd()) {
         return optional<Item>{};
     }
-    return optional<Item>{production.handleList[position]};
+    return optional<Item>{production.handleList[position + 1]};
 }
 
 bool Handler::isEnd() {
@@ -60,7 +59,7 @@ Handler Handler::nextHandler() {
     return Handler{production, position++};
 }
 
-set<Item> Handler::getLookForward() {
+set<Item> &Handler::getLookForward() {
     return lookForward;
 }
 

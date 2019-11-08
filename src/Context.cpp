@@ -17,6 +17,7 @@ using std::copy_if;
 using std::back_inserter;
 using std::begin;
 using std::end;
+using std::runtime_error;
 
 Context::Context(vector<Production> grammar, Production startProduction) : ruleList(move(grammar)), firstSet{},
                                                                            followSet{},
@@ -126,7 +127,11 @@ void Context::follow() {
 
 bool Context::isNullable(const Item &item) {
     auto iterator = firstSet.find(item.getName());
-    return iterator == end(firstSet);
+    if (iterator == end(firstSet)) {
+        return false;
+    } else {
+        return iterator->second.find(EMPTY) != iterator->second.end();
+    }
 }
 
 void Context::printFirst() {
@@ -209,6 +214,9 @@ void Context::generalLr1() {
 
 set<Handler> Context::closureSet(Handler &startHandler) {
     bool hasChanged;
+    if (startHandler.getLookForward().empty()) {
+        throw runtime_error("invalid start handler");
+    }
     set<Handler> result{startHandler};
     do {
         hasChanged = false;
@@ -220,20 +228,20 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                 for (auto &p : pRules) {
                     Handler handler{p, 0};
                     if (!bet) {
-                        auto firstP = firstAt(handler.getItem());
-                        if (firstP == firstSet.end()) {
-                            throw std::runtime_error("not found first set.");
-                        }
-                        auto &firstPM = firstP->second;
-                        handler.addLookForward(firstPM.begin(), firstPM.end());
+                        handler.addLookForward(currentHandler.getLookForward().begin(),
+                                               currentHandler.getLookForward().end());
                     } else {
                         auto &val = bet.value();
-                        if (isNullable(val)) {
+                        if (val.isNoTerminal() && isNullable(val)) {
                             set<Item> lookItems{currentHandler.getLookForward().begin(),
                                                 currentHandler.getLookForward().end()};
                             lookItems.insert(begin(firstAt(val)->second), end(firstAt(val)->second));
                             lookItems.erase(EMPTY);
                             handler.addLookForward(lookItems.begin(), lookItems.end());
+                        } else if (val.isTerminal()) {
+                            handler.getLookForward().emplace(val);
+                        } else {
+                            handler.addLookForward(begin(firstAt(val)->second), end(firstAt(val)->second));
                         }
                     }
                     if (result.find(handler) == result.end()) {
