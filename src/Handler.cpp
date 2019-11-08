@@ -3,6 +3,7 @@
 //
 
 #include "Handler.h"
+#include <iostream>
 #include <utility>
 
 using std::optional;
@@ -11,6 +12,8 @@ using std::vector;
 using std::next;
 using std::exception;
 using std::set;
+using std::cout;
+using std::endl;
 
 Handler::Handler(Production p, size_t pos) : production{move(p)}, position{pos},
                                              lookForward{Item{"$", ItemType::Terminal}} {
@@ -76,6 +79,17 @@ bool Handler::operator==(const Handler &handler) const {
     return production == handler.production && position == handler.position;
 }
 
+void Handler::printHandler() {
+    cout << production.getName() << " -> ";
+    for (auto &i : production.handleList) {
+        cout << i.getName();
+    }
+    cout << ",< ";
+    for (auto &i : lookForward) {
+        cout << i.getName() << " ";
+    }
+    cout << ">" << endl;
+}
 
 
 

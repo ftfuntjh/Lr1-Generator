@@ -27,6 +27,8 @@ public:
 
     std::optional<Item> bet();
 
+    void printHandler();
+
     bool isEnd();
 
     Handler nextHandler();

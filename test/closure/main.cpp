@@ -37,6 +37,10 @@ TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
     cout << "--- end ---" << endl;
     context.printFollow();
     auto result = context.closureSet(startHandler);
+    cout << endl;
+    for (auto h : result) {
+        h.printHandler();
+    }
     set<Item> s_Set{Item{"$", ItemType::Terminal}};
     set<Item> cc_Set{c, d};
     set<Item> c_Set{c};
