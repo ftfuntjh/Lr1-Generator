@@ -12,7 +12,7 @@ class Production {
 public:
     friend class Handler;
 
-    Production(const Item &name, const std::vector<Item> &handleList);
+    Production(Item name, const std::vector<Item> &handleList);
 
     bool operator==(const Production &other) const;
 

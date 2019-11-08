@@ -1,7 +1,9 @@
+#include <utility>
+
 #include "Production.h"
 
-Production::Production(const Item &productionName, const std::vector<Item> &items) :
-        name{productionName},
+Production::Production(Item productionName, const std::vector<Item> &items) :
+        name{std::move(productionName)},
         handleList{items.begin(), items.end()} {
 }
 

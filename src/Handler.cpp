@@ -57,7 +57,7 @@ set<Item> Handler::getLookForward() {
 }
 
 Item Handler::current() {
-
+    return production[position];
 }
 
 void Handler::addLookForward(std::set<Item>::const_iterator begin, std::set<Item>::const_iterator end) {
@@ -72,7 +72,7 @@ bool Handler::operator<(const Handler &handler) const {
     return production.getName() < handler.production.getName();
 }
 
-bool Handler::operator==(const Handler &handler) const{
+bool Handler::operator==(const Handler &handler) const {
     return production == handler.production && position == handler.position;
 }
 
