@@ -251,7 +251,7 @@ set<HandlerSet> Context::Goto(HandlerSet currState) {
             }
         }
         next = closureItemSet(next);
-        result.emplace(t, next);
+        result.emplace(HandlerSet{t, next});
     }
     return result;
 }

@@ -43,14 +43,14 @@ auto Handler::B() -> decltype(production.handleList.begin()) {
 }
 
 optional<Item> Handler::bet() {
-    if (position == production.size() - 1) {
+    if (position >= production.size() - 1) {
         return optional<Item>{};
     }
     return optional<Item>{production.handleList[position + 1]};
 }
 
 bool Handler::isEnd() {
-    return position == production.size();
+    return position >= production.size();
 }
 
 Handler Handler::nextHandler() {
@@ -84,9 +84,14 @@ bool Handler::operator<(const Handler &handler) const {
         return production.getName() < handler.production.getName();
     } else {
         auto comparator = [](const Item &a1, const Item &a2) { return a1 < a2; };
-        return lexicographical_compare(production.handleList.begin(), production.handleList.end(),
-                                       handler.production.handleList.begin(), handler.production.handleList.end(),
-                                       comparator);
+        auto result = lexicographical_compare(production.handleList.begin(), production.handleList.end(),
+                                              handler.production.handleList.begin(),
+                                              handler.production.handleList.end(),
+                                              comparator);
+        if (result != 0) {
+            return result;
+        }
+        return position < handler.position;
     }
 }
 
@@ -104,6 +109,9 @@ void Handler::printHandler() {
             cout << "·";
         }
         cout << t.getName();
+    }
+    if (position == production.handleList.size()) {
+        cout << "·";
     }
     cout << ",< ";
     for (auto &i : lookForward) {
