@@ -49,6 +49,15 @@ optional<Item> Handler::bet() {
     return optional<Item>{production.handleList[position + 1]};
 }
 
+optional<vector<Item>> Handler::left() {
+    if (position >= production.size() - 1) {
+        return optional<vector<Item>>{};
+    }
+    auto start = production.handleList.begin();
+    std::advance(start, position);
+    return optional<vector<Item>>{vector<Item>{start, production.handleList.end()}};
+}
+
 bool Handler::isEnd() {
     return position >= production.size();
 }

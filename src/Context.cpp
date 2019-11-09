@@ -3,7 +3,6 @@
 #include <iostream>
 #include <utility>
 
-
 static const Item EMPTY{"^", ItemType::Terminal};
 static const Item Eof{"$", ItemType::Terminal};
 using std::vector;
@@ -204,7 +203,9 @@ vector<HandlerSet> Context::generalLr1() {
     bool hasChanged;
     vector<HandlerSet> stateSet{};
     auto startHandler = Handler{start, 0, set<Item>{Eof}};
-    stateSet.emplace_back(HandlerSet{Eof, closureSet(startHandler)});
+    HandlerSet firstHandler{Eof, closureSet(startHandler)};
+    firstHandler.setId(0);
+    stateSet.emplace_back(firstHandler);
     auto has = [](HandlerSet &a1, HandlerSet &a2) {
         return a1.shiftItem() == a2.shiftItem() &&
                std::equal(a1.ruleList().begin(), a1.ruleList().end(), a2.ruleList().begin());
@@ -213,9 +214,11 @@ vector<HandlerSet> Context::generalLr1() {
         hasChanged = false;
         for (auto p : stateSet) {
             auto nextStat = Goto(p);
-            for (const auto &stat : nextStat) {
+            for (auto stat : nextStat) {
                 if (std::find(stateSet.begin(), stateSet.end(), stat) == stateSet.end()) {
                     hasChanged = true;
+                    stat.setId(stateSet.size());
+                    stat.setParentId(p.getId());
                     stateSet.emplace_back(stat);
                 }
             }
@@ -296,9 +299,18 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                     } else {
                         auto &val = bet.value();
                         if (val.isNoTerminal() && isNullable(val)) {
+                            auto leftOpt = currentHandler.left();
+                            auto leftVal = leftOpt.value();
+                            set<Item> possLookItems{};
+                            for (auto &nextItem: leftVal) {
+                                if (isNullable(nextItem)) {
+                                    auto firstAtItem = firstAt(nextItem);
+                                    possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
+                                }
+                            }
                             set<Item> lookItems{currentHandler.getLookForward().begin(),
                                                 currentHandler.getLookForward().end()};
-                            lookItems.insert(begin(firstAt(val)->second), end(firstAt(val)->second));
+                            lookItems.insert(begin(possLookItems), end(possLookItems));
                             lookItems.erase(EMPTY);
                             handler.addLookForward(lookItems.begin(), lookItems.end());
                         } else if (val.isTerminal()) {

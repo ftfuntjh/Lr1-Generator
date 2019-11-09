@@ -11,11 +11,11 @@ using std::move;
 using std::equal;
 using std::lexicographical_compare;
 
-HandlerSet::HandlerSet(Item item) : shift{move(item)}, handlerList{} {
+HandlerSet::HandlerSet(Item item) : shift{move(item)}, handlerList{}, id{} {
 
 }
 
-HandlerSet::HandlerSet(Item item, set<Handler> handlers) : shift{move(item)}, handlerList{move(handlers)} {
+HandlerSet::HandlerSet(Item item, set<Handler> handlers) : shift{move(item)}, handlerList{move(handlers)}, id{} {
 
 }
 
@@ -36,4 +36,20 @@ bool HandlerSet::operator<(const HandlerSet &other) const {
 
 bool HandlerSet::operator==(const HandlerSet &other) const {
     return shift == other.shift && equal(handlerList.begin(), handlerList.end(), other.handlerList.begin());
+}
+
+void HandlerSet::setId(int pid) {
+    this->id = pid;
+}
+
+void HandlerSet::setParentId(int parentId) {
+    this->parent = parentId;
+}
+
+int HandlerSet::getId() {
+    return id;
+}
+
+int HandlerSet::getParentId() {
+    return parent;
 }

@@ -23,9 +23,15 @@ public:
 
     std::vector<Item> alpha();
 
+    Item last() {
+        return production.last();
+    }
+
     auto B() -> decltype(production.handleList.begin());
 
     std::optional<Item> bet();
+
+    std::optional<std::vector<Item>> left();
 
     void printHandler();
 

@@ -22,9 +22,19 @@ public:
 
     bool operator==(const HandlerSet &other) const;
 
+    void setId(int pid);
+
+    void setParentId(int parentId);
+
+    int getId();
+
+    int getParentId();
+
 private:
     Item shift;
     std::set<Handler> handlerList;
+    int id;
+    int parent = -1;
 };
 
 
