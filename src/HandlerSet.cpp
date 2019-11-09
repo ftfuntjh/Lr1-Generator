@@ -35,6 +35,9 @@ bool HandlerSet::operator<(const HandlerSet &other) const {
 }
 
 bool HandlerSet::operator==(const HandlerSet &other) const {
+    if (handlerList.size() != other.handlerList.size()) {
+        return false;
+    }
     return shift == other.shift && equal(handlerList.begin(), handlerList.end(), other.handlerList.begin());
 }
 

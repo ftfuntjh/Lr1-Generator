@@ -248,7 +248,7 @@ set<HandlerSet> Context::Goto(HandlerSet currState) {
     for (auto &nT : nTList) {
         set<Handler> next{};
         for (auto h:currState.ruleList()) {
-            if (h.current() == nT && !h.isEnd()) {
+            if (!h.isEnd() && h.current() == nT) {
                 next.emplace(move(h.nextHandler()));
             }
         }
@@ -258,7 +258,7 @@ set<HandlerSet> Context::Goto(HandlerSet currState) {
     for (auto &t : tList) {
         set<Handler> next{};
         for (auto h:currState.ruleList()) {
-            if (h.current() == t && !h.isEnd()) {
+            if (!h.isEnd() && h.current() == t) {
                 next.emplace(move(h.nextHandler()));
             }
         }
@@ -350,7 +350,7 @@ std::vector<Production> Context::rules(const Item &item) {
     return result;
 }
 
-pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet> state) {
+pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet> &state) {
     using ActionItem = array<int, 2>;
     using ItemName = string;
     using ItemAction = pair<ItemName, ActionItem>;
@@ -358,8 +358,9 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
     // 1 for accept
     // 2 for shift
     // 3 for reduce
-    auto gotoStat = [&](Item shift, Handler &handler) -> int {
-        auto nextGoto = Goto(HandlerSet(move(shift), set<Handler>{handler}));
+    auto gotoStat = [&](Item shift, set<Handler> &handler) -> int {
+        auto handleSet = HandlerSet{shift, handler};;
+        auto nextGoto = Goto(handleSet);
         if (nextGoto.size() != 1) {
             throw runtime_error("invalid next state size");
         }
@@ -393,10 +394,23 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
                     stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
                 }
             } else if (!item.isEnd() && item.current().isTerminal()) {
-                auto nextState = gotoStat(item.current(), item);
+                set<Handler> sameCurrentHandlerList{};;
+                copy_if(currState.ruleList().begin(), currState.ruleList().end(),
+                        std::inserter(sameCurrentHandlerList, sameCurrentHandlerList.end()),
+                        [&item](Handler a1) {
+                            return !a1.isEnd() && a1.current() == item.current();
+                        });
+                auto nextState = gotoStat(item.current(), sameCurrentHandlerList);
                 stateActionTable.insert(ItemAction{item.current().getName(), ActionItem{2, nextState}});
             } else if (!item.isEnd() && item.current().isNoTerminal()) {
-                stateGotoTable.insert({GotoAction{item.current().getName(), gotoStat(item.current(), item)}});
+                set<Handler> sameCurrentHandlerList{};;
+                copy_if(currState.ruleList().begin(), currState.ruleList().end(),
+                        std::inserter(sameCurrentHandlerList, sameCurrentHandlerList.end()),
+                        [&item](Handler a1) {
+                            return !a1.isEnd() && a1.current() == item.current();
+                        });
+                stateGotoTable.insert(
+                        {GotoAction{item.current().getName(), gotoStat(item.current(), sameCurrentHandlerList)}});
             }
         }
     }

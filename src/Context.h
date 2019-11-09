@@ -35,7 +35,7 @@ public:
 
     std::vector<HandlerSet> generalLr1();
 
-    std::pair<ActionTable, GotoTable> table(std::vector<HandlerSet> statSet);
+    std::pair<ActionTable, GotoTable> table(std::vector<HandlerSet> &statSet);
 
     auto firstAt(const Item &item)
 

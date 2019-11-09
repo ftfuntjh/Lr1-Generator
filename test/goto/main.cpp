@@ -12,22 +12,23 @@ using namespace testing;
 class Goto : public Test {
 public:
     vector<Item> itemList{
-            Item{"S_", ItemType::NoTerminal},
             Item{"S", ItemType::NoTerminal},
-            Item{"C", ItemType::NoTerminal},
-            Item{"c", ItemType::Terminal},
-            Item{"d", ItemType::Terminal},
+            Item{"List", ItemType::NoTerminal},
+            Item{"Pair", ItemType::NoTerminal},
+            Item{"(", ItemType::Terminal},
+            Item{")", ItemType::Terminal},
     };
-    Item &S_ = itemList[0];
-    Item &S = itemList[1];
-    Item &C = itemList[2];
-    Item &c = itemList[3];
-    Item &d = itemList[4];
+    Item &S = itemList[0];
+    Item &List = itemList[1];
+    Item &Pair = itemList[2];
+    Item &left = itemList[3];
+    Item &right = itemList[4];
     vector<Production> productions{
-            Production{S_, vector<Item>{S}},
-            Production{S, vector<Item>{C, C}},
-            Production{C, vector<Item>{c, C}},
-            Production{C, vector<Item>{d}},
+            Production{S, vector<Item>{List}},
+            Production{List, vector<Item>{List, Pair}},
+            Production{List, vector<Item>{Pair}},
+            Production{Pair, vector<Item>{left, Pair, right}},
+            Production{Pair, vector<Item>{left, right}},
     };
 
     Context context{productions, productions[0]};
@@ -47,10 +48,10 @@ TEST_F(Goto, ShouldGenerateLr1Table) {
         cout << "--- end new state --- " << endl;
     }
 
-    ::printf("\n%25s|%10s\n", "action", "goto");
-    ::printf("%10s%5s%5s%5s|%5s%5s\n", "state", "c", "d", "$", "S", "C");
-    vector<string> nt{"c", "d", "$"};
-    vector<string> t{"S", "C"};
+    ::printf("\n%25s|%15s\n", "action", "goto");
+    ::printf("%10s%5s%5s%5s|%5s%5s%5s\n", "state", "(", ")", "$", "S", "List", "Pair");
+    vector<string> nt{"(", ")", "$"};
+    vector<string> t{"S", "List", "Pair"};
     char str[16];
     for (int i = 0; i < result.size(); i++) {
         auto &actionCurrent = table.first[i];
