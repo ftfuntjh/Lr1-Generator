@@ -398,6 +398,13 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
                 for (auto &look : lookForward) {
                     stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
                 }
+            } else if (!item.isEnd() && item.current().isTerminal() &&
+                       std::any_of(item.getProduction().begin(), item.getProduction().end(),
+                                   [](const Item &item) { return item == EMPTY; })) {
+                auto &lookForward = item.getLookForward();
+                for (auto &look : lookForward) {
+                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
+                }
             } else if (!item.isEnd() && item.current().isTerminal()) {
                 set<Handler> sameCurrentHandlerList{};;
                 copy_if(currState.ruleList().begin(), currState.ruleList().end(),

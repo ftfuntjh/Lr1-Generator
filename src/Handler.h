@@ -50,6 +50,8 @@ public:
     std::set<Item> &getLookForward();
 
     Item getItem();
+
+    Production &getProduction();
 };
 
 

@@ -130,5 +130,9 @@ void Handler::printHandler() {
     cout << ">" << endl;
 }
 
+Production &Handler::getProduction() {
+    return production;
+}
+
 
 
