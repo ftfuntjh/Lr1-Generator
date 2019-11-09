@@ -298,25 +298,35 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                                                currentHandler.getLookForward().end());
                     } else {
                         auto &val = bet.value();
-                        if (val.isNoTerminal() && isNullable(val)) {
-                            auto leftOpt = currentHandler.left();
-                            auto leftVal = leftOpt.value();
-                            set<Item> possLookItems{};
-                            for (auto &nextItem: leftVal) {
-                                if (isNullable(nextItem)) {
-                                    auto firstAtItem = firstAt(nextItem);
-                                    possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
-                                }
-                            }
+                        auto leftOpt = currentHandler.left();
+                        auto &leftVal = leftOpt.value();
+                        bool nullable = std::all_of(leftVal.begin(), leftVal.end(), [this](const Item &item) {
+                            return isNullable(item);
+                        });
+                        if (val.isNoTerminal() && nullable) {
                             set<Item> lookItems{currentHandler.getLookForward().begin(),
                                                 currentHandler.getLookForward().end()};
-                            lookItems.insert(begin(possLookItems), end(possLookItems));
+                            lookItems.insert(begin(leftVal), end(leftVal));
                             lookItems.erase(EMPTY);
                             handler.addLookForward(lookItems.begin(), lookItems.end());
                         } else if (val.isTerminal()) {
                             handler.getLookForward().emplace(val);
                         } else {
-                            handler.addLookForward(begin(firstAt(val)->second), end(firstAt(val)->second));
+                            set<Item> possLookItems{};
+                            for (auto &nextItem: leftVal) {
+                                auto firstAtItem = firstAt(nextItem);
+                                if (nextItem.isNoTerminal() && isNullable(nextItem)) {
+                                    possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
+                                } else if (nextItem.isNoTerminal()) {
+                                    possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
+                                    break;
+                                } else {
+                                    possLookItems.emplace(nextItem);
+                                    break;
+                                }
+                            }
+                            possLookItems.erase(EMPTY);
+                            handler.addLookForward(possLookItems.begin(), possLookItems.end());
                         }
                     }
                     if (result.find(handler) == result.end()) {
