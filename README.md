@@ -66,8 +66,7 @@ after that you could calculate the first/follow set and the lr(1) state table of
     context.printFollow(); // print the follow set
 ```
 **see the [test code](https://github.com/ftfuntjh/First-Follow/tree/master/test) for details**
-### Example
-
+### Example First/Follow Set
 The example grammar is
 ```
 E -> TE_
@@ -97,5 +96,18 @@ T -> {'$' ,')' ,'+'}
 T_ -> {'$' ,')' ,'+'}
 ```
 
-
-
+### Example Lr1 Actions Goto Table
+```
+                   action|      goto
+     state    c    d    $|    S    C
+         0  s1   s3      |    4    2
+         1  s1   s3      |         5
+         2  s6   s7      |         8
+         3  r0   r0      |          
+         4            a0 |          
+         5  r1   r1      |          
+         6  s6   s7      |         9
+         7            r2 |          
+         8            r2 |          
+         9            r6 |          
+```

@@ -68,7 +68,7 @@ TEST_F(Goto, ShouldGenerateLr1Table) {
                 } else if (action->second[0] == 3) {
                     strcpy(str, "r");
                 }
-                ::printf("%3s%2d", str, action->second[1]);
+                ::printf("%3s%-2d", str, action->second[1]);
             } else {
                 ::printf("     ");
             }
