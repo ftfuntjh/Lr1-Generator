@@ -39,52 +39,7 @@ TEST_F(Goto, ShouldGenerateLr1Table) {
     context.follow();
     auto result = context.generalLr1();
     auto table = context.table(result);
-    for (auto n : result) {
-        cout << endl;
-        cout << "--- start new state " << n.shiftItem().getName() << " ---" << endl;
-        for (auto h : n.ruleList()) {
-            h.printHandler();
-        }
-        cout << "--- end new state --- " << endl;
-    }
-
-    ::printf("\n%25s|%15s\n", "action", "goto");
-    ::printf("%10s%5s%5s%5s|%5s%5s%5s\n", "state", "(", ")", "$", "S", "List", "Pair");
-    vector<string> nt{"(", ")", "$"};
-    vector<string> t{"S", "List", "Pair"};
-    char str[16];
-    for (int i = 0; i < result.size(); i++) {
-        auto &actionCurrent = table.first[i];
-        auto &gotoCurrent = table.second[i];
-        ::printf("%10d", i);
-        for (auto &name : nt) {
-            memset(str, 0, sizeof(str));
-            auto action = actionCurrent.find(name);
-            if (action != std::end(actionCurrent)) {
-                if (action->second[0] == 1) {
-                    // accept
-                    strcpy(str, "a");
-                } else if (action->second[0] == 2) {
-                    strcpy(str, "s");
-                } else if (action->second[0] == 3) {
-                    strcpy(str, "r");
-                }
-                ::printf("%3s%-2d", str, action->second[1]);
-            } else {
-                ::printf("     ");
-            }
-        }
-        ::printf("|");
-        for (auto &name : t) {
-            auto gotoAction = gotoCurrent.find(name);
-            if (gotoAction != std::end(gotoCurrent)) {
-                printf("%5d", gotoAction->second);
-            } else {
-                printf("     ");
-            }
-        }
-        printf("\n");
-    }
+    context.printTable(table);
 }
 
 TEST_F(Goto, ShouldReturnNextHandlerSet) {

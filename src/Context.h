@@ -53,6 +53,7 @@ public:
 
     std::set<HandlerSet> Goto(HandlerSet currencyHandler);
 
+    void printTable(std::pair<ActionTable ,GotoTable> table);
 private:
 
     std::vector<Production> rules(const Item &item);

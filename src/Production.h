@@ -22,6 +22,10 @@ public:
         return name.getName();
     }
 
+    std::vector<Item>::iterator begin();
+
+    std::vector<Item>::iterator end();
+
     Item getItem();
 
     size_t size();

@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <iostream>
 #include <utility>
+#include <cstdio>
+#include <cstring>
 
 static const Item EMPTY{"^", ItemType::Terminal};
 static const Item Eof{"$", ItemType::Terminal};
@@ -415,5 +417,71 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
         }
     }
     return result;
+}
+
+void Context::printTable(pair<Context::ActionTable, Context::GotoTable> table) {
+    set<string> nt{};
+    set<string> t{Eof.getName()};
+    for (auto &p : ruleList) {
+        for (auto &i : p) {
+            if (i.isNoTerminal() && std::find(nt.begin(), nt.end(), i.getName()) == end(nt)) {
+                if (i == start.getItem()) {
+                    continue;
+                }
+                nt.insert(i.getName());
+            } else if (i.isTerminal() && std::find(t.begin(), t.end(), i.getName()) == end(t)) {
+                if (i == EMPTY) {
+                    continue;
+                }
+                t.insert(i.getName());
+            }
+        }
+    }
+    int actionTableLength = static_cast<int>(t.size() + 2) * 5;
+    int gotoTableLength = static_cast<int>(nt.size()) * 5;
+    ::printf("\n%*s|%-*s\n", actionTableLength, "action", gotoTableLength, "goto");
+    ::printf("%10s", "state");
+    for (auto &str: t) {
+        printf("%5s", str.c_str());
+    }
+    printf("|");
+    for (auto &str: nt) {
+        printf("%5s", str.c_str());
+    }
+    printf("\n");
+    char str[16];
+    for (int i = 0; i < table.first.size(); i++) {
+        auto &actionCurrent = table.first[i];
+        auto &gotoCurrent = table.second[i];
+        ::printf("%10d", i);
+        for (auto &name : t) {
+            memset(str, 0, sizeof(str));
+            auto action = actionCurrent.find(name);
+            if (action != std::end(actionCurrent)) {
+                if (action->second[0] == 1) {
+                    // accept
+                    strcpy(str, "a");
+                } else if (action->second[0] == 2) {
+                    strcpy(str, "s");
+                } else if (action->second[0] == 3) {
+                    strcpy(str, "r");
+                }
+                ::printf("%3s%-2d", str, action->second[1]);
+            } else {
+                ::printf("     ");
+            }
+        }
+        ::printf("|");
+        for (auto &name : nt) {
+            auto gotoAction = gotoCurrent.find(name);
+            if (gotoAction != std::end(gotoCurrent)) {
+                printf("%5d", gotoAction->second);
+            } else {
+                printf("     ");
+            }
+        }
+        printf("\n");
+    }
+
 }
 

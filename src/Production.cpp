@@ -30,3 +30,11 @@ Item Production::last() {
 Item Production::getItem() {
     return name;
 }
+
+std::vector<Item>::iterator Production::begin() {
+    return handleList.begin();
+}
+
+std::vector<Item>::iterator Production::end() {
+    return handleList.end();
+}
