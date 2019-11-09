@@ -34,9 +34,7 @@ public:
 
     Item last();
 
-    bool isNullable() const {
-        return std::find(handleList.begin(), handleList.end(), Item{"^", ItemType::Terminal}) != handleList.end();
-    }
+    bool isNullable() const;
 
 private:
     Item name;

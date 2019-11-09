@@ -2,6 +2,10 @@
 
 #include "Production.h"
 
+extern Item EMPTY;
+
+using std::find;
+
 Production::Production(Item productionName, const std::vector<Item> &items) :
         name{std::move(productionName)},
         handleList{items.begin(), items.end()} {
@@ -37,4 +41,8 @@ std::vector<Item>::iterator Production::begin() {
 
 std::vector<Item>::iterator Production::end() {
     return handleList.end();
+}
+
+bool Production::isNullable() const {
+    return find(handleList.begin(), handleList.end(), EMPTY) != handleList.end();
 }

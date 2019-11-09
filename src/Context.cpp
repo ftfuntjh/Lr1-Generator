@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <cstring>
 
-static const Item EMPTY{"^", ItemType::Terminal};
-static const Item Eof{"$", ItemType::Terminal};
+extern const Item EMPTY{"000", ItemType::Terminal};
+extern const Item Eof{"$", ItemType::Terminal};
 using std::vector;
 using std::set;
 using std::string;
@@ -44,7 +44,7 @@ void Context::first() {
                 auto ntFirstTable = firstAt(p[j]);
                 if (ntFirstTable != firstSet.end()) {
                     for (const auto &r : ntFirstTable->second) {
-                        if (r.getName() == "^") {
+                        if (r.getName() == EMPTY.getName()) {
                             nullable = true;
                             continue;
                         }
@@ -108,6 +108,9 @@ void Context::follow() {
                                 follow.emplace(i);
                             }
                         }
+                    }
+                    if (firstSet.find(item.getName()) == end(firstSet)) {
+                        throw runtime_error("invalid item for first table");
                     }
                     auto &firstTable = firstSet.find(item.getName())->second;
                     if (firstTable.find(EMPTY) != firstTable.end()) {
@@ -242,7 +245,7 @@ set<HandlerSet> Context::Goto(HandlerSet currState) {
         auto item = h.current();
         if (item.isNoTerminal()) {
             nTList.emplace(item);
-        } else if (item.isTerminal() && item.getName() != "^") {
+        } else if (item.isTerminal() && item.getName() != EMPTY.getName()) {
             tList.emplace(item);
         }
     }
@@ -437,19 +440,19 @@ void Context::printTable(pair<Context::ActionTable, Context::GotoTable> table) {
             }
         }
     }
-    int actionTableLength = static_cast<int>(t.size() + 2) * 5;
-    int gotoTableLength = static_cast<int>(nt.size()) * 5;
+    int actionTableLength = static_cast<int>(t.size() + 2) * 20;
+    int gotoTableLength = static_cast<int>(nt.size()) * 20;
     ::printf("\n%*s|%-*s\n", actionTableLength, "action", gotoTableLength, "goto");
     ::printf("%10s", "state");
     for (auto &str: t) {
-        printf("%5s", str.c_str());
+        printf("|%18s|", str.c_str());
     }
     printf("|");
     for (auto &str: nt) {
-        printf("%5s", str.c_str());
+        printf("|%18s|", str.c_str());
     }
     printf("\n");
-    char str[16];
+    char str[128];
     for (int i = 0; i < table.first.size(); i++) {
         auto &actionCurrent = table.first[i];
         auto &gotoCurrent = table.second[i];
@@ -466,18 +469,18 @@ void Context::printTable(pair<Context::ActionTable, Context::GotoTable> table) {
                 } else if (action->second[0] == 3) {
                     strcpy(str, "r");
                 }
-                ::printf("%3s%-2d", str, action->second[1]);
+                ::printf("|%13s%-5d|", str, action->second[1]);
             } else {
-                ::printf("     ");
+                ::printf("|%18s|", "");
             }
         }
         ::printf("|");
         for (auto &name : nt) {
             auto gotoAction = gotoCurrent.find(name);
             if (gotoAction != std::end(gotoCurrent)) {
-                printf("%5d", gotoAction->second);
+                printf("|%18d|", gotoAction->second);
             } else {
-                printf("     ");
+                printf("|%18s|", "");
             }
         }
         printf("\n");
