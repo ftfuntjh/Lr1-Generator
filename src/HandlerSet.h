@@ -33,7 +33,7 @@ public:
 private:
     Item shift;
     std::set<Handler> handlerList;
-    int id;
+    int id = -1;
     int parent = -1;
 };
 

@@ -5,14 +5,20 @@
 #include "Production.h"
 #include "Handler.h"
 #include "HandlerSet.h"
+#include <array>
+#include <memory>
 
 class Context {
 private:
+
     Production start;
     std::vector<Production> ruleList;
     std::map<std::string, std::set<Item>> firstSet;
     std::map<std::string, std::set<Item>> followSet;
 public:
+    using ActionTable = std::vector<std::map<std::string, std::array<int, 2>>>;
+    using GotoTable = std::vector<std::map<std::string, int>>;
+
     explicit Context(std::vector<Production> grammar, Production startProduction);
 
     void first();
@@ -29,7 +35,11 @@ public:
 
     std::vector<HandlerSet> generalLr1();
 
-    auto firstAt(const Item &item) -> decltype(firstSet.begin());
+    std::pair<ActionTable, GotoTable> table(std::vector<HandlerSet> statSet);
+
+    auto firstAt(const Item &item)
+
+    -> decltype(firstSet.begin());
 
     auto firstAt(const std::string &name) -> decltype(firstSet.begin());
 

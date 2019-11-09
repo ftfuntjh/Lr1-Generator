@@ -17,6 +17,7 @@ using std::back_inserter;
 using std::begin;
 using std::end;
 using std::runtime_error;
+using std::array;
 
 Context::Context(vector<Production> grammar, Production startProduction) : ruleList(move(grammar)), firstSet{},
                                                                            followSet{},
@@ -215,7 +216,8 @@ vector<HandlerSet> Context::generalLr1() {
         for (auto p : stateSet) {
             auto nextStat = Goto(p);
             for (auto stat : nextStat) {
-                if (std::find(stateSet.begin(), stateSet.end(), stat) == stateSet.end()) {
+                auto possPtr = std::find(stateSet.begin(), stateSet.end(), stat);
+                if (possPtr == stateSet.end()) {
                     hasChanged = true;
                     stat.setId(stateSet.size());
                     stat.setParentId(p.getId());
@@ -345,6 +347,59 @@ std::vector<Production> Context::rules(const Item &item) {
     copy_if(ruleList.begin(), ruleList.end(), back_inserter(result), [&item](Production other) {
         return other.getName() == item.getName() && other.getItem().isTerminal() == item.isTerminal();
     });
+    return result;
+}
+
+pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet> state) {
+    using ActionItem = array<int, 2>;
+    using ItemName = string;
+    using ItemAction = pair<ItemName, ActionItem>;
+    using GotoAction = pair<ItemName, int>;
+    // 1 for accept
+    // 2 for shift
+    // 3 for reduce
+    auto gotoStat = [&](Item shift, Handler &handler) -> int {
+        auto nextGoto = Goto(HandlerSet(move(shift), set<Handler>{handler}));
+        if (nextGoto.size() != 1) {
+            throw runtime_error("invalid next state size");
+        }
+        for (auto &n : nextGoto) {
+            auto ptr = std::find(state.begin(), state.end(), n);
+            if (ptr == end(state)) {
+                throw runtime_error("unknown goto state");
+            }
+            return std::distance(state.begin(), ptr);
+        }
+        return -1;
+    };
+    pair<Context::ActionTable, Context::GotoTable> result{Context::ActionTable{state.size()},
+                                                          Context::GotoTable{state.size()}};
+    auto &actionTable = result.first;
+    auto &gotoTable = result.second;
+    for (int i = 0; i < state.size(); i++) {
+        auto &currState = state[i];
+        auto &stateActionTable = actionTable[i];
+        auto &stateGotoTable = gotoTable[i];
+        for (auto item: currState.ruleList()) {
+            int parent = currState.getParentId();
+            if (item.isEnd() &&
+                item.getItem() == start.getItem() &&
+                item.getLookForward().size() == 1 &&
+                item.getLookForward().find(Eof) != end(item.getLookForward())) {
+                stateActionTable.insert(ItemAction{"$", ActionItem{1, 0}});
+            } else if (item.isEnd()) {
+                auto &lookForward = item.getLookForward();
+                for (auto &look : lookForward) {
+                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
+                }
+            } else if (!item.isEnd() && item.current().isTerminal()) {
+                auto nextState = gotoStat(item.current(), item);
+                stateActionTable.insert(ItemAction{item.current().getName(), ActionItem{2, nextState}});
+            } else if (!item.isEnd() && item.current().isNoTerminal()) {
+                stateGotoTable.insert({GotoAction{item.current().getName(), gotoStat(item.current(), item)}});
+            }
+        }
+    }
     return result;
 }
 
