@@ -52,6 +52,8 @@ public:
     Item getItem();
 
     Production &getProduction();
+
+    int getPosition();
 };
 
 

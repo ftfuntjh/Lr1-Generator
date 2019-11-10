@@ -10,12 +10,13 @@ using std::set;
 using std::move;
 using std::equal;
 using std::lexicographical_compare;
+using std::vector;
 
 HandlerSet::HandlerSet(Item item) : shift{move(item)}, handlerList{}, id{} {
 
 }
 
-HandlerSet::HandlerSet(Item item, set<Handler> handlers) : shift{move(item)}, handlerList{move(handlers)}, id{} {
+HandlerSet::HandlerSet(Item item, vector<Handler> handlers) : shift{move(item)}, handlerList{move(handlers)}, id{} {
 
 }
 
@@ -23,7 +24,7 @@ const Item &HandlerSet::shiftItem() {
     return shift;
 }
 
-set<Handler> &HandlerSet::ruleList() {
+vector<Handler> &HandlerSet::ruleList() {
     return handlerList;
 }
 

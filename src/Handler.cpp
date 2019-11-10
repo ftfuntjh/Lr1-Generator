@@ -54,7 +54,7 @@ optional<vector<Item>> Handler::left() {
         return optional<vector<Item>>{};
     }
     auto start = production.handleList.begin();
-    std::advance(start, position);
+    std::advance(start, position + 1);
     return optional<vector<Item>>{vector<Item>{start, production.handleList.end()}};
 }
 
@@ -105,6 +105,12 @@ bool Handler::operator<(const Handler &handler) const {
 }
 
 bool Handler::operator==(const Handler &handler) const {
+    if (production.handleList.size() != handler.production.handleList.size()) {
+        return false;
+    }
+    if (lookForward.size() != handler.lookForward.size()) {
+        return false;
+    }
     auto match = equal(production.handleList.begin(), production.handleList.begin(),
                        handler.production.handleList.begin());
     auto lookMatch = equal(lookForward.begin(), lookForward.end(), handler.lookForward.begin());
@@ -132,6 +138,10 @@ void Handler::printHandler() {
 
 Production &Handler::getProduction() {
     return production;
+}
+
+int Handler::getPosition() {
+    return position;
 }
 
 

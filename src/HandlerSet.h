@@ -12,11 +12,11 @@ class HandlerSet {
 public:
     explicit HandlerSet(Item item);
 
-    HandlerSet(Item item, std::set<Handler> handlerList);
+    HandlerSet(Item item, std::vector<Handler> handlerList);
 
     const Item &shiftItem();
 
-    std::set<Handler> &ruleList();
+    std::vector<Handler> &ruleList();
 
     bool operator<(const HandlerSet &other) const;
 
@@ -32,7 +32,7 @@ public:
 
 private:
     Item shift;
-    std::set<Handler> handlerList;
+    std::vector<Handler> handlerList;
     int id = -1;
     int parent = -1;
 };

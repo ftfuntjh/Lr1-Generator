@@ -29,54 +29,52 @@ Context::Context(vector<Production> grammar, Production startProduction) : ruleL
 
 void Context::first() {
     bool hasChanged;
+    for (auto &p : ruleList) {
+        if (firstSet.find(p.getName()) == end(firstSet)) {
+            firstSet.insert(pair<string, set<Item>>{p.getName(), set<Item>{}});
+        }
+        for (auto &i : p) {
+            bool exists = firstSet.find(i.getName()) != end(firstSet);
+            if (!exists && i.isNoTerminal()) {
+                firstSet.insert(pair<string, set<Item>>{i.getName(), set<Item>{}});
+            } else if (!exists && i.isTerminal()) {
+                firstSet.insert(pair<string, set<Item>>{i.getName(), set<Item>{i}});
+            }
+        }
+    }
     do {
         hasChanged = false;
         for (auto &p : ruleList) {
-            set<Item> result{};
-            size_t j = 0;
-            auto pFHasExist = firstExist(p.getName());
-            for (; j < p.size(); ++j) {
-                bool nullable = false;
-                if (p[j].isTerminal()) {
-                    result.emplace(p[j]);
-                    break;
-                }
-                auto ntFirstTable = firstAt(p[j]);
-                if (ntFirstTable != firstSet.end()) {
-                    for (const auto &r : ntFirstTable->second) {
-                        if (r.getName() == EMPTY.getName()) {
-                            nullable = true;
-                            continue;
-                        }
-                        result.emplace(r);
-                    }
-                }
-                if (!nullable) {
-                    break;
-                }
-            }
-            if (result.empty()) {
+            set<Item> rhs{};
+            if (p.size() < 1) {
                 continue;
             }
-            auto production = p.last();
-            if (j == p.size() - 1 && production.isNoTerminal() && pFHasExist) {
-                auto pTable = firstSet.find(production.getName());
-                if (pTable != firstSet.end() &&
-                    pTable->second.find(EMPTY) != pTable->second.end()) {
-                    result.emplace(EMPTY);
+            auto first = firstAt(p.first())->second;
+            rhs.insert(begin(first), end(first));
+            rhs.erase(EMPTY);
+            int k = 0;
+            if (p.size() > 1) {
+                while (k < p.size() - 1 && isNullable(p[k])) {
+                    auto nextFirst = firstAt(p[k + 1])->second;
+                    rhs.insert(begin(nextFirst), end(nextFirst));
+                    rhs.erase(EMPTY);
+                    k++;
                 }
+                if (k == p.size() - 1 && isNullable(p[k])) {
+                    rhs.insert(EMPTY);
+                }
+            } else if (p.first().isTerminal()) {
+                rhs.emplace(p.first());
             }
-            auto s = firstSet.find(p.getName());
-            if (s == firstSet.end()) {
-                hasChanged = true;
-                firstSet.insert(pair<string, set<Item>>(p.getName(), result));
-            } else {
-                auto &itemSet = s->second;
-                for (auto &item : result) {
-                    if (itemSet.find(item) == itemSet.end()) {
-                        hasChanged = true;
-                        itemSet.emplace(item);
-                    }
+            for (auto &i : rhs) {
+                auto pa = p.getName();
+                if (firstAt(pa) == end(firstSet)) {
+                    throw runtime_error("invalid first element.");
+                }
+                auto &first2p = firstAt(pa)->second;
+                if (first2p.find(i) == end(first2p)) {
+                    hasChanged = true;
+                    first2p.emplace(i);
                 }
             }
         }
@@ -209,33 +207,37 @@ vector<HandlerSet> Context::generalLr1() {
     bool hasChanged;
     vector<HandlerSet> stateSet{};
     auto startHandler = Handler{start, 0, set<Item>{Eof}};
-    HandlerSet firstHandler{Eof, closureSet(startHandler)};
+    vector<Handler> startHandlerVec{};
+    startHandlerVec.reserve(100);
+    closureSet(startHandler, startHandlerVec);
+    HandlerSet firstHandler{Eof, startHandlerVec};
     firstHandler.setId(0);
     stateSet.emplace_back(firstHandler);
-    auto has = [](HandlerSet &a1, HandlerSet &a2) {
-        return a1.shiftItem() == a2.shiftItem() &&
-               std::equal(a1.ruleList().begin(), a1.ruleList().end(), a2.ruleList().begin());
-    };
     do {
-        hasChanged = false;
-        for (auto p : stateSet) {
-            auto nextStat = Goto(p);
-            for (auto stat : nextStat) {
-                auto possPtr = std::find(stateSet.begin(), stateSet.end(), stat);
-                if (possPtr == stateSet.end()) {
-                    hasChanged = true;
-                    stat.setId(stateSet.size());
-                    stat.setParentId(p.getId());
-                    stateSet.emplace_back(stat);
+        try {
+
+            hasChanged = false;
+            for (auto p : stateSet) {
+                auto nextStat = Goto(p);
+                for (auto stat : nextStat) {
+                    auto possPtr = std::find(stateSet.begin(), stateSet.end(), stat);
+                    if (possPtr == stateSet.end()) {
+                        hasChanged = true;
+                        stat.setId(stateSet.size());
+                        stat.setParentId(p.getId());
+                        stateSet.emplace_back(stat);
+                    }
                 }
             }
+        } catch (const std::exception &e) {
+            cout << "exception";
         }
     } while (hasChanged);
     return stateSet;
 }
 
-set<HandlerSet> Context::Goto(HandlerSet currState) {
-    set<HandlerSet> result{};
+vector<HandlerSet> Context::Goto(HandlerSet currState) {
+    vector<HandlerSet> result{};
     set<Item> nTList{};
     set<Item> tList{};
     for (auto h : currState.ruleList()) {
@@ -251,43 +253,43 @@ set<HandlerSet> Context::Goto(HandlerSet currState) {
     }
 
     for (auto &nT : nTList) {
-        set<Handler> next{};
+        vector<Handler> next{};
         for (auto h:currState.ruleList()) {
             if (!h.isEnd() && h.current() == nT) {
-                next.emplace(move(h.nextHandler()));
+                next.emplace_back(move(h.nextHandler()));
             }
         }
         next = closureItemSet(next);
-        result.emplace(HandlerSet{nT, next});
+        result.emplace_back(HandlerSet{nT, next});
     }
     for (auto &t : tList) {
-        set<Handler> next{};
+        vector<Handler> next{};
         for (auto h:currState.ruleList()) {
             if (!h.isEnd() && h.current() == t) {
-                next.emplace(move(h.nextHandler()));
+                next.emplace_back(move(h.nextHandler()));
             }
         }
         next = closureItemSet(next);
-        result.emplace(HandlerSet{t, next});
+        result.emplace_back(t, next);
     }
     return result;
 }
 
-set<Handler> Context::closureItemSet(set<Handler> &handlerSet) {
-    set<Handler> result{};
+vector<Handler> Context::closureItemSet(vector<Handler> &handlerSet) {
+    vector<Handler> result{};
+    result.reserve(20);
     for (auto handler : handlerSet) {
-        auto closure = closureSet(handler);
-        result.insert(closure.begin(), closure.end());
+        auto closure = closureSet(handler, result);
     }
     return result;
 }
 
-set<Handler> Context::closureSet(Handler &startHandler) {
+vector<Handler> Context::closureSet(Handler &startHandler, vector<Handler> &result) {
     bool hasChanged;
     if (startHandler.getLookForward().empty()) {
         throw runtime_error("invalid start handler");
     }
-    set<Handler> result{startHandler};
+    result.push_back(startHandler);
     do {
         hasChanged = false;
         for (auto currentHandler:result) {
@@ -313,7 +315,11 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                         if (val.isNoTerminal() && nullable) {
                             set<Item> lookItems{currentHandler.getLookForward().begin(),
                                                 currentHandler.getLookForward().end()};
-                            lookItems.insert(begin(leftVal), end(leftVal));
+                            set<Item> firstSetAt{};
+                            for (auto &leftItem : leftVal) {
+                                lookItems.insert(firstAt(leftItem)->second.begin(), firstAt(leftItem)->second.end());
+                            }
+                            lookItems.insert(firstSetAt.begin(), firstSetAt.end());
                             lookItems.erase(EMPTY);
                             handler.addLookForward(lookItems.begin(), lookItems.end());
                         } else if (val.isTerminal()) {
@@ -322,7 +328,8 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                             set<Item> possLookItems{};
                             for (auto &nextItem: leftVal) {
                                 auto firstAtItem = firstAt(nextItem);
-                                if (nextItem.isNoTerminal() && isNullable(nextItem)) {
+                                bool nextIsEmpty = nextItem == EMPTY;
+                                if ((nextItem.isNoTerminal() && isNullable(nextItem)) || nextIsEmpty) {
                                     possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
                                 } else if (nextItem.isNoTerminal()) {
                                     possLookItems.insert(firstAtItem->second.begin(), firstAtItem->second.end());
@@ -336,15 +343,45 @@ set<Handler> Context::closureSet(Handler &startHandler) {
                             handler.addLookForward(possLookItems.begin(), possLookItems.end());
                         }
                     }
-                    if (result.find(handler) == result.end()) {
+                    auto ptr = find_if(result.begin(), result.end(), [&handler](Handler other) {
+                        bool itemEqual = other.getItem() == handler.getItem();
+                        if (!itemEqual) {
+                            return false;
+                        }
+                        bool productionSizeEqual = other.getProduction().size() == handler.getProduction().size();
+                        if (!productionSizeEqual) {
+                            return false;
+                        }
+                        bool productionEqual = std::equal(handler.getProduction().begin(),
+                                                          handler.getProduction().end(), other.getProduction().begin());
+                        if (!productionEqual) {
+                            return false;
+                        }
+
+                        return handler.getPosition() == other.getPosition();
+                    });
+                    if (ptr == result.end()) {
+
                         hasChanged = true;
-                        result.emplace(handler);
+                        result.emplace_back(handler);
+                    } else {
+                        auto &lookA1 = ptr->getLookForward();
+                        vector<Item> diff{};
+                        diff.reserve(10);
+                        std::set_difference(handler.getLookForward().begin(), handler.getLookForward().end(),
+                                            lookA1.begin(), lookA1.end(), std::back_inserter(diff));
+                        if (!diff.empty()) {
+                            hasChanged = true;
+                            result[std::distance(result.begin(), ptr)].getLookForward().insert(diff.begin(),
+                                                                                               diff.end());
+                        }
                     }
                 }
             }
         }
     } while (hasChanged);
-    return result;
+    return
+            result;
 }
 
 std::vector<Production> Context::rules(const Item &item) {
@@ -363,8 +400,8 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
     // 1 for accept
     // 2 for shift
     // 3 for reduce
-    auto gotoStat = [&](Item shift, set<Handler> &handler) -> int {
-        auto handleSet = HandlerSet{shift, handler};;
+    auto gotoStat = [&](Item shift, vector<Handler> &handler) -> int {
+        auto handleSet = HandlerSet{std::move(shift), handler};;
         auto nextGoto = Goto(handleSet);
         if (nextGoto.size() != 1) {
             throw runtime_error("invalid next state size");
@@ -395,18 +432,42 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
                 stateActionTable.insert(ItemAction{"$", ActionItem{1, 0}});
             } else if (item.isEnd()) {
                 auto &lookForward = item.getLookForward();
+                auto &production = item.getProduction();
+                auto ptr = find_if(ruleList.begin(), ruleList.end(), [&production](Production &prod) {
+                    if (production.size() != prod.size()) {
+                        return false;
+                    }
+                    return prod.getName() == production.getName() &&
+                           std::equal(prod.begin(), prod.end(), production.begin());
+                });
+                if (ptr == end(ruleList)) {
+                    throw runtime_error("invalid production");
+                }
+                int id = std::distance(ruleList.begin(), ptr);
                 for (auto &look : lookForward) {
-                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
+                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, id}});
                 }
             } else if (!item.isEnd() && item.current().isTerminal() &&
                        std::any_of(item.getProduction().begin(), item.getProduction().end(),
                                    [](const Item &item) { return item == EMPTY; })) {
                 auto &lookForward = item.getLookForward();
+                auto &production = item.getProduction();
+                auto ptr = find_if(ruleList.begin(), ruleList.end(), [&production](Production &prod) {
+                    if (production.size() != prod.size()) {
+                        return false;
+                    }
+                    return prod.getName() == production.getName() &&
+                           std::equal(prod.begin(), prod.end(), production.begin());
+                });
+                if (ptr == end(ruleList)) {
+                    throw runtime_error("invalid production");
+                }
+                int id = std::distance(ruleList.begin(), ptr);
                 for (auto &look : lookForward) {
-                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, parent}});
+                    stateActionTable.insert(ItemAction{look.getName(), ActionItem{3, id}});
                 }
             } else if (!item.isEnd() && item.current().isTerminal()) {
-                set<Handler> sameCurrentHandlerList{};;
+                vector<Handler> sameCurrentHandlerList{};;
                 copy_if(currState.ruleList().begin(), currState.ruleList().end(),
                         std::inserter(sameCurrentHandlerList, sameCurrentHandlerList.end()),
                         [&item](Handler a1) {
@@ -415,7 +476,7 @@ pair<Context::ActionTable, Context::GotoTable> Context::table(vector<HandlerSet>
                 auto nextState = gotoStat(item.current(), sameCurrentHandlerList);
                 stateActionTable.insert(ItemAction{item.current().getName(), ActionItem{2, nextState}});
             } else if (!item.isEnd() && item.current().isNoTerminal()) {
-                set<Handler> sameCurrentHandlerList{};;
+                vector<Handler> sameCurrentHandlerList{};;
                 copy_if(currState.ruleList().begin(), currState.ruleList().end(),
                         std::inserter(sameCurrentHandlerList, sameCurrentHandlerList.end()),
                         [&item](Handler a1) {

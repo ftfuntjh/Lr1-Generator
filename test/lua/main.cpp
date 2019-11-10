@@ -6,7 +6,8 @@ using namespace testing;
 
 class Lua : public Test {
 public:
-    Item empty{"0", ItemType::Terminal};
+    Item empty{"000", ItemType::Terminal};
+    Item start{"start", ItemType::NoTerminal};
     Item chunk{"#chunk", ItemType::NoTerminal};
     Item reptstat{"#reptstat", ItemType::NoTerminal};
     Item optbreak{"#optbreak", ItemType::NoTerminal};
@@ -100,6 +101,7 @@ public:
     Item func{"function", ItemType::Terminal};
 
     vector<Production> productionList{
+            Production{start, vector<Item>{chunk}},
             Production{chunk, vector<Item>{reptstat, reptlaststat}},
             Production{reptstat, vector<Item>{empty}},
             Production{reptstat, vector<Item>{reptstat, stat, optbreak}},
@@ -203,9 +205,10 @@ TEST_F(Lua, ShouldGenerateLr1Table) {
     auto result = context.generalLr1();
     auto table = context.table(result);
     context.printTable(table);
+
 }
 
 int main(int argc, char *argv[]) {
-    InitGoogleTest(&argc, argv);
+    InitGoogleTest();
     return RUN_ALL_TESTS();
 }

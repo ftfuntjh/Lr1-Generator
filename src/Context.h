@@ -47,13 +47,14 @@ public:
 
     auto followAt(const std::string &name) -> decltype(followSet.begin());
 
-    std::set<Handler> closureSet(Handler &startHandler);
+    std::vector<Handler> closureSet(Handler &startHandler, std::vector<Handler> &result);
 
-    std::set<Handler> closureItemSet(std::set<Handler> &handlerSet);
+    std::vector<Handler> closureItemSet(std::vector<Handler> &handlerSet);
 
-    std::set<HandlerSet> Goto(HandlerSet currencyHandler);
+    std::vector<HandlerSet> Goto(HandlerSet currencyHandler);
 
-    void printTable(std::pair<ActionTable ,GotoTable> table);
+    void printTable(std::pair<ActionTable, GotoTable> table);
+
 private:
 
     std::vector<Production> rules(const Item &item);

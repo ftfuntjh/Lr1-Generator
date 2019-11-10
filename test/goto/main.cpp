@@ -11,35 +11,48 @@ using namespace testing;
 
 class Goto : public Test {
 public:
+
     vector<Item> itemList{
+            Item{"S_", ItemType::NoTerminal},
             Item{"S", ItemType::NoTerminal},
-            Item{"List", ItemType::NoTerminal},
-            Item{"Pair", ItemType::NoTerminal},
-            Item{"(", ItemType::Terminal},
-            Item{")", ItemType::Terminal},
+            Item{"C", ItemType::NoTerminal},
+            Item{"c", ItemType::Terminal},
+            Item{"d", ItemType::Terminal},
     };
-    Item &S = itemList[0];
-    Item &List = itemList[1];
-    Item &Pair = itemList[2];
-    Item &left = itemList[3];
-    Item &right = itemList[4];
+    Item &S_ = itemList[0];
+    Item &S = itemList[1];
+    Item &C = itemList[2];
+    Item &c = itemList[3];
+    Item &d = itemList[4];
     vector<Production> productions{
-            Production{S, vector<Item>{List}},
-            Production{List, vector<Item>{List, Pair}},
-            Production{List, vector<Item>{Pair}},
-            Production{Pair, vector<Item>{left, Pair, right}},
-            Production{Pair, vector<Item>{left, right}},
+            Production{S_, vector<Item>{S}},
+            Production{S, vector<Item>{C, C}},
+            Production{C, vector<Item>{c, C}},
+            Production{C, vector<Item>{d}},
     };
 
     Context context{productions, productions[0]};
 };
 
 TEST_F(Goto, ShouldGenerateLr1Table) {
-    context.first();
-    context.follow();
-    auto result = context.generalLr1();
-    auto table = context.table(result);
-    context.printTable(table);
+    try {
+        context.first();
+        context.follow();
+        auto result = context.generalLr1();
+        for (auto n : result) {
+            cout << endl;
+            cout << "--- start new state " << n.shiftItem().getName() << " ---" << endl;
+            for (auto h : n.ruleList()) {
+                h.printHandler();
+            }
+            cout << "--- end new state --- " << endl;
+        }
+        auto table = context.table(result);
+        context.printTable(table);
+    } catch (const exception &exp) {
+        cout << "exception " << endl;
+    }
+
 }
 
 TEST_F(Goto, ShouldReturnNextHandlerSet) {
