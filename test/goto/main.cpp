@@ -61,7 +61,8 @@ TEST_F(Goto, ShouldReturnNextHandlerSet) {
     Item eof{"$", ItemType::Terminal};
     set<Item> lookAt{eof};
     Handler handler{productions[0], 0, lookAt};
-    auto closure = context.closureSet(handler);
+    vector<Handler> closure{};
+    context.closureSet(handler, closure);
     HandlerSet startHandlerSet{Item{"", ItemType::Terminal}, closure};
     auto gotoNext = context.Goto(startHandlerSet);
     for (auto n : gotoNext) {

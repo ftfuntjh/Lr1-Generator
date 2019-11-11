@@ -40,13 +40,14 @@ TEST_F(Closure, ClouseShouldInitTheStartItemSet) {
     context.printFirst();
     cout << "--- end ---" << endl;
     context.printFollow();
-    auto result = context.closureSet(startHandler);
+    vector<Handler> result{};
+    context.closureSet(startHandler, result);
     cout << "--- handler ---" << endl;
     for (auto h : result) {
         h.printHandler();
     }
 
-    set<Handler> expected{
+    vector<Handler> expected{
             Handler{productions[0], 0, s_Set},
             Handler{productions[1], 0, s_Set},
             Handler{productions[2], 0, cc_Set},
